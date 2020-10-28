@@ -10,34 +10,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace price_change_x_percent
 {
-    public class Program
+  public class Program
+  {
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-
-//        public static IHostBuilder CreateHostBuilder(string[] args) =>
-//            Host.CreateDefaultBuilder(args)
-//                .ConfigureWebHostDefaults(webBuilder =>
-//                {
-//                    webBuilder.UseStartup<Startup>();
-//                });
-
-        public static IHostBuilder CreateHostBuilder(string[] args)
-        {
-            string port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-            string url = String.Concat("http://0.0.0.0:", port);
-
-            return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>().UseUrls(url);
-                })
-                .ConfigureServices(services =>
-                {
-                    services.AddHostedService<price_change_x_percent.Workers.Worker>();
-                });
-        }
+      CreateHostBuilder(args).Build().Run();
     }
+
+    public static IHostBuilder CreateHostBuilder(string[] args)
+    {
+      string port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+      string url = String.Concat("http://0.0.0.0:", port);
+
+      return Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(webBuilder =>
+        {
+          webBuilder.UseStartup<Startup>().UseUrls(url);
+        })
+        .ConfigureServices(services =>
+        {
+          services.AddHostedService<price_change_x_percent.Workers.BitflyerWorker>();
+        });
+    }
+  }
 }
