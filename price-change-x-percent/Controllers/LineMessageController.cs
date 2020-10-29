@@ -4,6 +4,10 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using price_change_x_percent.Models;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
+using Line.Messaging;
+using System.Threading.Tasks;
 
 namespace price_change_x_percent.Controllers
 {
@@ -12,23 +16,37 @@ namespace price_change_x_percent.Controllers
   public class LineMessageController : ControllerBase
   {
     //private readonly ILogger<LineMessageController> _logger;
+/*****
+$ curl -v -X POST https://api.line.me/v2/bot/message/push \
+-H 'Content-Type:application/json' \
+-H 'Authorization: Bearer YOUR_ACCESS_TOKEN_HERE' \
+-d '{"to": "YOUR_USER_ID_HERE","messages":[{"type": "text","text": "Hello, world"}]}'
+******/
+    private static LineMessagingClient lineMessagingClient;
+    private string accessToken = Environment.GetEnvironmentVariable("ChannelAccessToken") ?? "xxxxxxxxxx";
+    //private string channelSecret = Environment.GetEnvironmentVariable("ChannelSecret") ?? "xxxxxxxxxx";
 
-    private static readonly string[] Summaries = new[]
-    {
-      "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+    public LineMessageController(){
+      lineMessagingClient = new LineMessagingClient(accessToken);
+    }
 
     [HttpGet]
-    public IEnumerable<WeatherForecast> Get()
+    public ActionResult Get()
     {
-        var rng = new Random();
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = DateTime.Now.AddDays(index),
-            TemperatureC = rng.Next(-20, 55),
-            Summary = Summaries[rng.Next(Summaries.Length)]
-        })
-        .ToArray();
+        return Content($"{StatusCodes.Status200OK}");
+    }
+
+    [HttpPost]
+    public ActionResult Post([FromBody]JObject request)
+    {
+      Console.WriteLine(request.ToString());
+      return Content($"{StatusCodes.Status200OK}");
+    }
+
+    [HttpPost("SayHello")]
+    public async Task<ActionResult> SayHello([FromBody]JObject request){
+      await lineMessagingClient.PushMessageAsync("xxxxxxxxxx",$"{request.ToString()}");
+      return Content($"{StatusCodes.Status200OK}");
     }
   }
 }

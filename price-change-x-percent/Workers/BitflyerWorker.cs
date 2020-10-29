@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Newtonsoft.Json;
 using price_change_x_percent.Models;
 
 namespace price_change_x_percent.Workers
@@ -21,13 +22,17 @@ namespace price_change_x_percent.Workers
     private Queue<CandleStick> fiveMinuteCandleSticks = new Queue<CandleStick>();
     private Queue<CandleStick> thirtyMinuteCandleSticks = new Queue<CandleStick>();
 
-    private Ticker previousTick = null;
+//    private Dictionary<int,Queue<CandleStick>> candleStickQueues;
 
     private readonly ILogger<BitflyerWorker> _logger;
 
     public BitflyerWorker(ILogger<BitflyerWorker> logger)
     {
       _logger = logger;
+//      candleStickQueues = new Dictionary<int, Queue<CandleStick>>();
+//      candleStickQueues.Add(1,new Queue<CandleStick>());
+//      candleStickQueues.Add(5,new Queue<CandleStick>());
+//      candleStickQueues.Add(30,new Queue<CandleStick>());
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,11 +43,11 @@ namespace price_change_x_percent.Workers
 
         EnqueueCandleStick(ticker, oneMinuteCandleSticks, 1);
         EnqueueCandleStick(ticker, fiveMinuteCandleSticks, 5);
-        //EnqueueCandleStick(ticker, thirtyMinuteCandleSticks, 30);
+        EnqueueCandleStick(ticker, thirtyMinuteCandleSticks, 30);
         
-        _logger.LogInformation($"1m: {oneMinuteCandleSticks.Count}, 5m: {fiveMinuteCandleSticks.Count}");
-
-        previousTick = ticker;
+        //_logger.LogInformation($"1m: {oneMinuteCandleSticks.Count}, "+
+        //  $"5m: {fiveMinuteCandleSticks.Count}, "+
+        //  $"30m: {thirtyMinuteCandleSticks.Count}");
 
         await Task.Delay(1000, stoppingToken);
       }
@@ -61,7 +66,7 @@ namespace price_change_x_percent.Workers
         var response = await message.Content.ReadAsStringAsync();
 
         //Json to Ticker
-        Ticker ticker = Newtonsoft.Json.JsonConvert.DeserializeObject<Ticker>(response);
+        Ticker ticker = JsonConvert.DeserializeObject<Ticker>(response);
         return ticker;
       }
     }
@@ -84,6 +89,7 @@ namespace price_change_x_percent.Workers
       }
       
       //_logger.LogInformation($"{minute_interval}m: {candleStickQueue.Count}");
+      //if (minute_interval == 5)
       //_logger.LogInformation($"{candleStickQueue.Count}:{candleStick.ToString()}");
 
       //Keep Queue Stable
@@ -92,7 +98,8 @@ namespace price_change_x_percent.Workers
       }
     }
 
-    public void CheckCandleTrends(){
+    public void CheckCandleTrends(Queue<CandleStick> candleStickQueue, int minute_interval){
+      var candleStickList = candleStickQueue.ToList();
       
     }
   }
