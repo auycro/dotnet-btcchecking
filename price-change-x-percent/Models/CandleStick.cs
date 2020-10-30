@@ -6,6 +6,7 @@ namespace price_change_x_percent.Models
 {
   public class CandleStick
   {
+    public enum CandleTrend {DEFAULT,UP,DOWN}
     public long open_time { get; set;}
     public long close_time { get; set;}
     public long open_price { get; set;}
@@ -13,7 +14,9 @@ namespace price_change_x_percent.Models
     public long low_price { get; set;}
     public long close_price { get; set;}
     public long volume { get; set;}
-    public long quote_volume {get; set;}
+    public long quote_volume { get; set;}
+    public CandleTrend trend { get; set;} 
+    public long alert_price { get; set;}
 
     public static CandleStick CreateCandleStick(Ticker ticker){
       CandleStick candleStick = new CandleStick();
@@ -32,6 +35,7 @@ namespace price_change_x_percent.Models
       high_price = (ticker.ltp > high_price)? ticker.ltp : high_price;
       low_price = (ticker.ltp < low_price)? ticker.ltp : low_price;
       close_price = ticker.ltp;
+      trend = (open_price < close_price)? CandleTrend.UP : CandleTrend.DOWN;
       //volume = volume + ticker.volume;          
     }
 

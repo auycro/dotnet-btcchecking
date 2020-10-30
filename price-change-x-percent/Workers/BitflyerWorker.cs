@@ -18,13 +18,13 @@ namespace price_change_x_percent.Workers
     static readonly Uri endpointUri = new Uri("https://api.bitflyer.com");
 
     static readonly int MAX_BARS = 100;
-    static readonly float ALERT_PERCENT = 0.02f;
+    static readonly double[] ALERT_PERCENT = {0.5,1.0};
 
     private Queue<CandleStick> oneMinuteCandleSticks = new Queue<CandleStick>();
     private Queue<CandleStick> fiveMinuteCandleSticks = new Queue<CandleStick>();
     private Queue<CandleStick> thirtyMinuteCandleSticks = new Queue<CandleStick>();
 
-    enum MARKET_STAGE {STEADY, UP, DOWN, FLUCTUATE};
+    enum MARKET_TREND {DEFAULT, UP, DOWN, FLUCTUATE};
 
     private readonly ILogger<BitflyerWorker> _logger;
 
@@ -87,10 +87,12 @@ namespace price_change_x_percent.Workers
       }
       
       //_logger.LogInformation($"{minute_interval}m: {candleStickQueue.Count}");
-      if (minute_interval == 1) {
+      //if (minute_interval == 5) {
       //  _logger.LogInformation($"{candleStickQueue.Count}:{candleStick.ToString()}");
-        await AlertByPercent(candleStick, ticker.ltp);
-      }
+        //await AlertByPercent(candleStick, ticker.ltp, minute_interval);
+      //}
+      if (minute_interval >1)
+        await AlertByPercent(candleStick, ticker.ltp, minute_interval);
 
       //Keep Queue Stable
       if (candleStickQueue.Count > MAX_BARS) {
@@ -98,27 +100,22 @@ namespace price_change_x_percent.Workers
       }
     }
 
-    public async Task AlertByPercent(CandleStick candleStick, long current_price){
-      string sendText = string.Empty;
-      double diff = 0.00f;
+    public async Task AlertByPercent(CandleStick candleStick, long current_price, int minute_interval){
+      List<string> sendText = new List<string>();
+      long compare_price = (candleStick.alert_price == 0)? candleStick.open_price : candleStick.alert_price;
+      double diff = CalculateChangePercent(current_price, compare_price);
+      
+      double alert_percent = (minute_interval < 30)? ALERT_PERCENT[0] : ALERT_PERCENT[1];
 
-      //Up Trend Alert
-      if (candleStick.open_price < current_price){
-        diff = CalculateChangePercent(candleStick.open_price, current_price);
-        if (Math.Abs(diff) > ALERT_PERCENT)
-          sendText = $"Price Alert: Up {diff.ToString("0.00")} {candleStick.open_price.ToString("0.00")} {current_price.ToString("0.00")}";
+      if (Math.Abs(diff) > alert_percent) {
+        string diff_text = (diff > 0)? $"+{diff.ToString("0.00")}%":$"{diff.ToString("0.00")}%";
+        sendText.Add($"PRICE ALERT [{minute_interval}m]: {diff_text}\n{compare_price}jpy -> {current_price}jpy");
+        candleStick.alert_price = current_price;
       }
 
-      //Down Trend Alert
-      if (candleStick.open_price > current_price){
-        diff = CalculateChangePercent(candleStick.open_price, current_price);
-        if (Math.Abs(diff) > ALERT_PERCENT)
-          sendText = $"Price Alert: Down {diff.ToString("0.00")} {candleStick.open_price.ToString("0.00")} {current_price.ToString("0.00")}";
-      }
-
-      if (!string.IsNullOrEmpty(sendText)) {
-        _logger.LogInformation($"SendToLine: {sendText}");
-        await LineMessageService.SendLineMessage(sendText);
+      if (sendText.Count > 0) {
+        _logger.LogInformation($"SendToLine: {sendText.ToArray()[0]}");
+        await LineMessageService.SendLineMessage(sendText.ToArray());
       }
     }
 

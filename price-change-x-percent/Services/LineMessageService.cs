@@ -41,9 +41,9 @@ namespace price_change_x_percent.Services
     -H 'Authorization: Bearer YOUR_ACCESS_TOKEN_HERE' \
     -d '{"to": "YOUR_USER_ID_HERE","messages":[{"type": "text","text": "Hello, world"}]}'
     ******/
-    public static async Task SendLineMessage(string text){
+    public static async Task SendLineMessage(string[] text){
       try {
-        await lineMessagingClient.PushMessageAsync("xxxxxxxxxx",$"{text}");
+        await lineMessagingClient.PushMessageAsync("xxxxxxxxxx",text);
       } catch(Exception e){
         Console.WriteLine(e.Message);
       }
