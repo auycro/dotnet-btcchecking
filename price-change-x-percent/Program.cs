@@ -30,6 +30,7 @@ namespace price_change_x_percent
         .ConfigureServices(services =>
         {
           services.AddHostedService<price_change_x_percent.Workers.BitflyerWorker>();
+          services.AddHostedService<price_change_x_percent.Services.LineMessageService>();
         });
     }
   }

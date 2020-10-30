@@ -15,19 +15,10 @@ namespace price_change_x_percent.Controllers
   [Route("[controller]")]
   public class LineMessageController : ControllerBase
   {
-    //private readonly ILogger<LineMessageController> _logger;
-/*****
-$ curl -v -X POST https://api.line.me/v2/bot/message/push \
--H 'Content-Type:application/json' \
--H 'Authorization: Bearer YOUR_ACCESS_TOKEN_HERE' \
--d '{"to": "YOUR_USER_ID_HERE","messages":[{"type": "text","text": "Hello, world"}]}'
-******/
-    private static LineMessagingClient lineMessagingClient;
-    private string accessToken = Environment.GetEnvironmentVariable("ChannelAccessToken") ?? "xxxxxxxxxx";
-    //private string channelSecret = Environment.GetEnvironmentVariable("ChannelSecret") ?? "xxxxxxxxxx";
+    private readonly ILogger<LineMessageController> _logger;
 
-    public LineMessageController(){
-      lineMessagingClient = new LineMessagingClient(accessToken);
+    public LineMessageController(ILogger<LineMessageController> logger){
+      _logger = logger;
     }
 
     [HttpGet]
@@ -36,16 +27,10 @@ $ curl -v -X POST https://api.line.me/v2/bot/message/push \
         return Content($"{StatusCodes.Status200OK}");
     }
 
-    [HttpPost]
-    public ActionResult Post([FromBody]JObject request)
+    [HttpPost("webhooks")]
+    public ActionResult WebhookEndpoint([FromBody]JObject request)
     {
-      Console.WriteLine(request.ToString());
-      return Content($"{StatusCodes.Status200OK}");
-    }
-
-    [HttpPost("SayHello")]
-    public async Task<ActionResult> SayHello([FromBody]JObject request){
-      await lineMessagingClient.PushMessageAsync("xxxxxxxxxx",$"{request.ToString()}");
+      _logger.LogInformation($"Received: {request.ToString()}");
       return Content($"{StatusCodes.Status200OK}");
     }
   }
