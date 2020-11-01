@@ -11,7 +11,8 @@ namespace price_change_x_percent.Services
   public class LineMessageService: IHostedService
   {
     private static LineMessagingClient lineMessagingClient;
-    private string accessToken = Environment.GetEnvironmentVariable("ChannelAccessToken") ?? "xxxxxxxxxx";
+    private string accessToken = DotNetEnv.Env.GetString("LINE_CHANNEL_ACCESS_TOKEN") ?? "xxxxxxxxxx";
+    private static string mainUserID = DotNetEnv.Env.GetString("LINE_USER_ID") ?? "xxxxxxxxxx"; 
 
     private readonly ILogger<LineMessageService> _logger;
 
@@ -43,7 +44,7 @@ namespace price_change_x_percent.Services
     ******/
     public static async Task SendLineMessage(string[] text){
       try {
-        await lineMessagingClient.PushMessageAsync("xxxxxxxxxx",text);
+        await lineMessagingClient.PushMessageAsync(mainUserID, text);
       } catch(Exception e){
         Console.WriteLine(e.Message);
       }

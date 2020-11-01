@@ -14,12 +14,13 @@ namespace price_change_x_percent
   {
     public static void Main(string[] args)
     {
+      DotNetEnv.Env.Load();
       CreateHostBuilder(args).Build().Run();
     }
 
     public static IHostBuilder CreateHostBuilder(string[] args)
     {
-      string port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+      string port = DotNetEnv.Env.GetString("APP_PORT") ?? "5000";
       string url = String.Concat("http://0.0.0.0:", port);
 
       return Host.CreateDefaultBuilder(args)

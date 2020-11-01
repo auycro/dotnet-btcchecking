@@ -16,7 +16,6 @@ namespace price_change_x_percent.Workers
   public class BitflyerWorker : BackgroundService
   {
     static readonly Uri endpointUri = new Uri("https://api.bitflyer.com");
-
     static readonly int MAX_BARS = 100;
     static readonly double[] ALERT_PERCENT = {0.5,1.0};
 
@@ -24,7 +23,9 @@ namespace price_change_x_percent.Workers
     private Queue<CandleStick> fiveMinuteCandleSticks = new Queue<CandleStick>();
     private Queue<CandleStick> thirtyMinuteCandleSticks = new Queue<CandleStick>();
 
-    enum MARKET_TREND {DEFAULT, UP, DOWN, FLUCTUATE};
+//    enum MARKET_TREND {DEFAULT, UP, DOWN, FLUCTUATE};
+
+    public static bool AlertStatus = false;
 
     private readonly ILogger<BitflyerWorker> _logger;
 
@@ -91,7 +92,7 @@ namespace price_change_x_percent.Workers
       //  _logger.LogInformation($"{candleStickQueue.Count}:{candleStick.ToString()}");
         //await AlertByPercent(candleStick, ticker.ltp, minute_interval);
       //}
-      if (minute_interval >1)
+      if (minute_interval > 1 && AlertStatus)
         await AlertByPercent(candleStick, ticker.ltp, minute_interval);
 
       //Keep Queue Stable
