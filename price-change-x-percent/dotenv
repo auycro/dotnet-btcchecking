@@ -1,0 +1,4 @@
+# temporary env file
+APP_PORT="8080"
+LINE_CHANNEL_ACCESS_TOKEN="xxxxxxxxxx"
+LINE_USER_ID="xxxxxxxxxx"
